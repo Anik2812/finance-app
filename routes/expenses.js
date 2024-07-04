@@ -68,7 +68,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(401).json({ msg: 'Not authorized' });
     }
     
-    await Expense.findByIdAndRemove(req.params.id);
+    await Expense.findByIdAndDelete(req.params.id);
     console.log('Expense successfully deleted');
     res.json({ msg: 'Expense removed' });
   } catch (err) {
