@@ -16,6 +16,78 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// @route   GET api/budgets/:id
+// @desc    Get budget by ID
+// @access  Private
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const budget = await Budget.findById(req.params.id);
+
+    if (!budget) return res.status(404).json({ msg: 'Budget not found' });
+
+    if (budget.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+
+    res.json(budget);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   PUT api/budgets/:id
+// @desc    Update a budget
+// @access  Private
+router.put('/:id', auth, async (req, res) => {
+  const { totalBudget } = req.body;
+
+  try {
+    let budget = await Budget.findById(req.params.id);
+
+    if (!budget) return res.status(404).json({ msg: 'Budget not found' });
+
+    if (budget.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+
+    budget = await Budget.findByIdAndUpdate(
+      req.params.id,
+      { $set: { totalBudget } },
+      { new: true }
+    );
+
+    res.json(budget);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   DELETE api/budgets/:id
+// @desc    Delete a budget
+// @access  Private
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    let budget = await Budget.findById(req.params.id);
+    if (!budget) return res.status(404).json({ msg: 'Budget not found' });
+
+    if (budget.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+
+    await Budget.findByIdAndDelete(req.params.id);
+
+    res.json({ msg: 'Budget removed' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   POST api/budgets
+// @desc    Add new budget
+// @access  Private
 // @route   POST api/budgets
 // @desc    Add new budget
 // @access  Private
@@ -38,56 +110,5 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// @route   PUT api/budgets/:id
-// @desc    Update budget
-// @access  Private
-router.put('/:id', auth, async (req, res) => {
-  const { category, amount, period } = req.body;
-
-  try {
-    let budget = await Budget.findById(req.params.id);
-
-    if (!budget) return res.status(404).json({ msg: 'Budget not found' });
-
-    // Make sure user owns budget
-    if (budget.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'Not authorized' });
-    }
-
-    budget = await Budget.findByIdAndUpdate(
-      req.params.id,
-      { $set: { category, amount, period } },
-      { new: true }
-    );
-
-    res.json(budget);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route   DELETE api/budgets/:id
-// @desc    Delete budget
-// @access  Private
-router.delete('/:id', auth, async (req, res) => {
-  try {
-    let budget = await Budget.findById(req.params.id);
-
-    if (!budget) return res.status(404).json({ msg: 'Budget not found' });
-
-    // Make sure user owns budget
-    if (budget.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'Not authorized' });
-    }
-
-    await Budget.findByIdAndDelete(req.params.id);
-
-    res.json({ msg: 'Budget removed' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
 
 module.exports = router;
