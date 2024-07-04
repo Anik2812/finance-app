@@ -5,6 +5,10 @@ const ExpenseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users'
   },
+  description: {
+    type: String,
+    required: true
+  },
   amount: {
     type: Number,
     required: true
@@ -16,10 +20,7 @@ const ExpenseSchema = new mongoose.Schema({
   date: {
     type: Date,
     default: Date.now
-  },
-  description: {
-    type: String
   }
 });
 
-module.exports = mongoose.model('Expense', ExpenseSchema);
+module.exports = mongoose.model('expense', ExpenseSchema);

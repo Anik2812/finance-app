@@ -1,4 +1,3 @@
-// In your routes/auth.js file
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -6,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 router.post('/', async (req, res) => {
+  console.log('Request received:', req.body); // Add this log
   const { email, password } = req.body;
 
   try {
