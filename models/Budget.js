@@ -15,7 +15,8 @@ const BudgetSchema = new mongoose.Schema({
   },
   period: {
     type: String,
-    required: true
+    required: true,
+    enum: ['weekly', 'monthly', 'yearly']
   },
   date: {
     type: Date,
@@ -23,4 +24,4 @@ const BudgetSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Budget', BudgetSchema);
+module.exports = mongoose.model('budget', BudgetSchema);
