@@ -18,6 +18,23 @@ router.get('/', auth, async (req, res) => {
 
 // Add these routes to your existing expenses.js file
 
+// GET api/expenses/:id
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const expense = await Expense.findById(req.params.id);
+
+    if (!expense) return res.status(404).json({ msg: 'Expense not found' });
+
+    if (expense.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+
+    res.json(expense);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 // @route   PUT api/expenses/:id
 // @desc    Update an expense
 // @access  Private

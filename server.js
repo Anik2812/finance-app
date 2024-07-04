@@ -2,6 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const auth = require('./routes/auth');
+const users = require('./routes/users');
+const expenses = require('./routes/expenses');
+const budgets = require('./routes/budgets');
 require('dotenv').config();
 
 const app = express();
@@ -12,17 +15,17 @@ app.use(cors());
 
 // Routes
 app.use('/api/auth', auth);
-app.use('/api/users', require('./routes/users'));
-app.use('/api/expenses', require('./routes/expenses'));
-app.use('/api/budgets', require('./routes/budgets'));
+app.use('/api/users', users);
+app.use('/api/expenses', expenses);
+app.use('/api/budgets', budgets);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Test route for root path
 app.get('/', (req, res) => {
