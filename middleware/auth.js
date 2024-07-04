@@ -1,16 +1,72 @@
 const express = require('express');
-const { check, validationResult } = require('express-validator');
+const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { check, validationResult } = require('express-validator');
+const User = require('../models/User');  // Make sure this path is correct
+require('dotenv').config();
 
-const router = express.Router();
 
-// Login route
-router.post('/auth', [
-  // Validation rules
-  check('email').isEmail().withMessage('Invalid email address'),
-  check('password').notEmpty().withMessage('Password is required')
+// @route   POST api/auth/register
+// @desc    Register user
+// @access  Public
+router.post('/register', [
+  check('name', 'Name is required').not().isEmpty(),
+  check('email', 'Please include a valid email').isEmail(),
+  check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 })
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { name, email, password } = req.body;
+
+  try {
+    let user = await User.findOne({ email });
+
+    if (user) {
+      return res.status(400).json({ msg: 'User already exists' });
+    }
+
+    user = new User({
+      name,
+      email,
+      password
+    });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    await user.save();
+
+    const payload = {
+      user: {
+        id: user.id
+      }
+    };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   POST api/auth/login
+// @desc    Authenticate user & get token
+// @access  Public
+router.post('/login', [
+  check('email', 'Please include a valid email').isEmail(),
+  check('password', 'Password is required').exists()
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -20,26 +76,24 @@ router.post('/auth', [
   const { email, password } = req.body;
 
   try {
-    // Find the user by email
     let user = await User.findOne({ email });
+
     if (!user) {
       return res.status(400).json({ msg: 'Invalid Credentials' });
     }
 
-    // Check if the password matches
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid Credentials' });
     }
 
-    // Create JWT payload
     const payload = {
       user: {
         id: user.id
       }
     };
 
-    // Sign the JWT token
     jwt.sign(
       payload,
       process.env.JWT_SECRET,

@@ -16,9 +16,9 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// Add these routes to your existing expenses.js file
-
-// GET api/expenses/:id
+// @route   GET api/expenses/:id
+// @desc    Get expense by ID
+// @access  Private
 router.get('/:id', auth, async (req, res) => {
   try {
     const expense = await Expense.findById(req.params.id);
@@ -35,6 +35,7 @@ router.get('/:id', auth, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
 // @route   PUT api/expenses/:id
 // @desc    Update an expense
 // @access  Private
@@ -69,27 +70,19 @@ router.put('/:id', auth, async (req, res) => {
 // @access  Private
 router.delete('/:id', auth, async (req, res) => {
   try {
-    console.log('Deleting expense with ID:', req.params.id);
     let expense = await Expense.findById(req.params.id);
-    if (!expense) {
-      console.log('Expense not found');
-      return res.status(404).json({ msg: 'Expense not found' });
-    }
-    
-    console.log('User ID from token:', req.user.id);
-    console.log('Expense user ID:', expense.user.toString());
-    
+    if (!expense) return res.status(404).json({ msg: 'Expense not found' });
+
     // Make sure user owns expense
     if (expense.user.toString() !== req.user.id) {
-      console.log('User not authorized to delete this expense');
       return res.status(401).json({ msg: 'Not authorized' });
     }
-    
+
     await Expense.findByIdAndDelete(req.params.id);
-    console.log('Expense successfully deleted');
+
     res.json({ msg: 'Expense removed' });
   } catch (err) {
-    console.error('Error in delete expense route:', err);
+    console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
